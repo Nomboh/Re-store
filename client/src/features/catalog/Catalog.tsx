@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Product } from "../../app/models/product";
 import ProductList from "./ProductList";
 
-type Props = {};
+interface Props {}
 
-function Catalog({}: Props) {
+function Catalog(prop: Props) {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
