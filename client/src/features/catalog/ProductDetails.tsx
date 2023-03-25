@@ -1,4 +1,3 @@
-import CircularProgress from "@mui/material/CircularProgress";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import Table from "@mui/material/Table";
@@ -7,37 +6,38 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import agent from "../../app/api/agent";
+import NotFound from "../../app/errors/NotFound";
+import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Product } from "../../app/models/product";
 
 interface Props {}
 
 function ProductDetails(prop: Props) {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      axios
-        .get(`http://localhost:5000/api/products/${id}`)
+    id &&
+      agent.catalog
+        .details(parseInt(id))
         .then(response => {
           setLoading(true);
-          setProduct(response.data);
+          setProduct(response);
         })
         .catch(error => {
           console.log(error);
         })
         .finally(() => setLoading(false));
-    }
   }, [id]);
 
-  if (loading) return <CircularProgress />;
+  if (loading) return <LoadingComponent contain="Loading Product" />;
 
-  if (!product) return <h1>There is no product with that Id</h1>;
+  if (!product) return <NotFound />;
 
   return (
     <Grid container spacing={6}>
