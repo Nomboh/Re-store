@@ -14,6 +14,7 @@ import React from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useStoreContext } from "../context/StoreContext";
 import { BasketItems } from "../models/basket";
+import { useAppSelector } from "../store/configureStore";
 
 interface Props {
   darkMode: boolean;
@@ -37,7 +38,7 @@ const navStyles = {
   "&.active": { color: "text.secondary" },
 };
 function Header({ darkMode, handleThemeChange }: Props) {
-  const { basket } = useStoreContext();
+  const { basket } = useAppSelector(state => state.basket);
   const getSum = (total: number, item: BasketItems) => total + item.quantity;
 
   const items = basket!.items.reduce(getSum, 0);
