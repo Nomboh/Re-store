@@ -11,17 +11,20 @@ import Typography from "@mui/material/Typography";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import agent from "../../app/api/agent";
-import { useStoreContext } from "../../app/context/StoreContext";
 import NotFound from "../../app/errors/NotFound";
 import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Product } from "../../app/models/product";
+import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
+import { removeItem, setBasket } from "../basket/basketSlice";
 
 interface Props {}
 
 function ProductDetails(prop: Props) {
   const { id } = useParams<{ id: string }>();
 
-  const { basket, setBasket, removeBasket } = useStoreContext();
+  const {basket} = useAppSelector(state => state.basket)
+
+  const dispatch = useAppDispatch();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,14 +65,14 @@ function ProductDetails(prop: Props) {
       const updateQuantity = item ? quantity - item?.quantity! : quantity;
       agent.basket
         .addBasket(product?.id!, updateQuantity)
-        .then(basket => setBasket(basket))
+        .then(basket => dispatch(setBasket(basket)))
         .catch(error => console.log(error))
         .finally(() => setSubmitting(false));
     } else {
       const updateQuantity = item.quantity - quantity;
       agent.basket
         .removeBasket(product?.id!, updateQuantity)
-        .then(() => removeBasket(product?.id!, updateQuantity))
+        .then(() => dispatch(removeItem({productId: product?.id, quantity: updateQuantity})))
         .catch(error => console.log(error))
         .finally(() => setSubmitting(false));
     }

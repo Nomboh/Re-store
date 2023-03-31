@@ -12,7 +12,6 @@ import {
 import { Box } from "@mui/system";
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { useStoreContext } from "../context/StoreContext";
 import { BasketItems } from "../models/basket";
 import { useAppSelector } from "../store/configureStore";
 
