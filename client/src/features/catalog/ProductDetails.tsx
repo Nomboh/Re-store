@@ -10,45 +10,40 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import agent from "../../app/api/agent";
 import NotFound from "../../app/errors/NotFound";
 import LoadingComponent from "../../app/layout/LoadingComponent";
-import { Product } from "../../app/models/product";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { removeItem, setBasket } from "../basket/basketSlice";
+import {
+  addBasketItemsAsync,
+  removeBasketItemsAsync,
+} from "../basket/basketSlice";
+import { getCatalogAsync, productSelector } from "./catalogSlice";
 
 interface Props {}
 
 function ProductDetails(prop: Props) {
   const { id } = useParams<{ id: string }>();
 
-  const {basket} = useAppSelector(state => state.basket)
+  const { basket, status } = useAppSelector(state => state.basket);
+  const { status: productStatus } = useAppSelector(state => state.catalog);
+
+  const product = useAppSelector(state =>
+    productSelector.selectById(state, id!)
+  );
 
   const dispatch = useAppDispatch();
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [quantity, setQuantity] = useState(0);
 
   const item = basket?.items.find(b => b.productId === product?.id);
 
   useEffect(() => {
     if (item) setQuantity(item.quantity);
-    id &&
-      agent.catalog
-        .details(parseInt(id))
-        .then(response => {
-          setLoading(true);
-          setProduct(response);
-        })
-        .catch(error => {
-          console.log(error);
-        })
-        .finally(() => setLoading(false));
-  }, [id, item]);
+    if (!product) dispatch(getCatalogAsync(parseInt(id!)));
+  }, [id, item, product, dispatch]);
 
-  if (loading) return <LoadingComponent contain="Loading Product" />;
+  if (productStatus.includes("pending"))
+    return <LoadingComponent contain="Loading Product" />;
 
   if (!product) return <NotFound />;
 
@@ -59,22 +54,22 @@ function ProductDetails(prop: Props) {
   }
 
   function handleSubmit() {
-    setSubmitting(true);
-
     if (!item || quantity > item.quantity) {
       const updateQuantity = item ? quantity - item?.quantity! : quantity;
-      agent.basket
-        .addBasket(product?.id!, updateQuantity)
-        .then(basket => dispatch(setBasket(basket)))
-        .catch(error => console.log(error))
-        .finally(() => setSubmitting(false));
+      dispatch(
+        addBasketItemsAsync({
+          productId: item?.productId!,
+          quantity: updateQuantity,
+        })
+      );
     } else {
       const updateQuantity = item.quantity - quantity;
-      agent.basket
-        .removeBasket(product?.id!, updateQuantity)
-        .then(() => dispatch(removeItem({productId: product?.id, quantity: updateQuantity})))
-        .catch(error => console.log(error))
-        .finally(() => setSubmitting(false));
+      dispatch(
+        removeBasketItemsAsync({
+          productId: item.productId,
+          quantity: updateQuantity,
+        })
+      );
     }
   }
 
@@ -139,7 +134,10 @@ function ProductDetails(prop: Props) {
               disabled={
                 quantity === item?.quantity || (!item && quantity === 0)
               }
-              loading={submitting}
+              loading={
+                status.includes("pendingAddItem" + item?.productId) ||
+                status.includes("pendingRemoveItem" + item?.productId)
+              }
               sx={{ height: "55px" }}
               color="primary"
               size="large"

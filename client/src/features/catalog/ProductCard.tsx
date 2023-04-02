@@ -20,10 +20,9 @@ interface Props {
 }
 
 function ProductCard({ product }: Props) {
-  const {status} = useAppSelector(state => state.basket)
-  const dispatch= useAppDispatch();
+  const { status } = useAppSelector(state => state.basket);
+  const dispatch = useAppDispatch();
 
- 
   return (
     <Card>
       <CardHeader
@@ -56,8 +55,10 @@ function ProductCard({ product }: Props) {
       </CardContent>
       <CardActions>
         <LoadingButton
-          loading={status.includes("pendingAddItem"+product.id) }
-          onClick={() => dispatch(addBasketItemsAsync({productId: product.id}))}
+          loading={status.includes("pendingAddItem" + product.id)}
+          onClick={() =>
+            dispatch(addBasketItemsAsync({ productId: product.id }))
+          }
           size="small"
         >
           Add to Cart

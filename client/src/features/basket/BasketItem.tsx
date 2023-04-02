@@ -13,62 +13,32 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import agent from "../../app/api/agent";
 import { BasketItems } from "../../app/models/basket";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { removeItem, setBasket } from "./basketSlice";
+import { addBasketItemsAsync, removeBasketItemsAsync } from "./basketSlice";
 import BasketSummary from "./BasketSummary";
 
 type Props = {};
 
 function BasketItem(prop: Props) {
-  const dispatch = useAppDispatch()
-  const {basket}=useAppSelector(state => state.basket);
-  const [status, setStatus] = useState({
-    loading: false,
-    name: "",
-  });
+  const dispatch = useAppDispatch();
+  const { basket, status } = useAppSelector(state => state.basket);
 
-  const handleAddItem = (productId: number, name: string) => {
-    setStatus({
-      loading: true,
-      name,
-    });
-
-    agent.basket
-      .addBasket(productId)
-      .then(basket => dispatch(setBasket(basket)))
-      .catch(error => console.log(error))
-      .finally(() =>
-        setStatus({
-          loading: false,
-          name: "",
-        })
-      );
+  const handleAddItem = (productId: number) => {
+    dispatch(addBasketItemsAsync({ productId }));
   };
 
-  const handleRemoveItem = (
+  const handleRemoveItem = (productId: number, name: string) => {
+    dispatch(removeBasketItemsAsync({ productId, quantity: 1, name }));
+  };
+
+  const handleDeleteItem = (
     productId: number,
-    quantity: number = 1,
+    quantity: number,
     name: string
   ) => {
-    setStatus({
-      loading: true,
-      name,
-    });
-
-    agent.basket
-      .removeBasket(productId, quantity)
-      .then(() => dispatch(removeItem({productId, quantity})))
-      .catch(error => console.log(error))
-      .finally(() =>
-        setStatus({
-          loading: false,
-          name: "",
-        })
-      );
+    dispatch(removeBasketItemsAsync({ productId, quantity, name }));
   };
 
   if (!basket) return <Typography variant="h1">You Basket is Empty</Typography>;
@@ -106,24 +76,18 @@ function BasketItem(prop: Props) {
                 </TableCell>
                 <TableCell align="center">
                   <LoadingButton
-                    onClick={() =>
-                      handleAddItem(row.productId, row.productId + "add")
-                    }
+                    onClick={() => handleAddItem(row.productId)}
                     color="secondary"
-                    loading={
-                      status.loading && status.name === row.productId + "add"
-                    }
+                    loading={status === "pendingAddItem" + row.productId}
                   >
                     <Add />
                   </LoadingButton>
                   {row.quantity}
                   <LoadingButton
-                    onClick={() =>
-                      handleRemoveItem(row.productId, 1, row.productId + "del")
-                    }
+                    onClick={() => handleRemoveItem(row.productId, "remove")}
                     color="error"
                     loading={
-                      status.loading && status.name === row.productId + "del"
+                      status === "pendingRemoveItem" + row.productId + "remove"
                     }
                   >
                     <Remove />
@@ -135,17 +99,14 @@ function BasketItem(prop: Props) {
                 <TableCell align="right">
                   <LoadingButton
                     onClick={() =>
-                      handleRemoveItem(
-                        row.productId,
-                        row.quantity,
-                        row.productId + "rem"
-                      )
+                      handleDeleteItem(row.productId, row.quantity, "del")
                     }
                     loading={
-                      status.loading && status.name === row.productId + "rem"
+                      status === "pendingRemoveItem" + row.productId + "del"
                     }
+                    color="error"
                   >
-                    <DeleteOutline color="error" />
+                    <DeleteOutline />
                   </LoadingButton>
                 </TableCell>
               </TableRow>
