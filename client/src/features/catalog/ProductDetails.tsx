@@ -54,11 +54,12 @@ function ProductDetails(prop: Props) {
   }
 
   function handleSubmit() {
+    console.log(product);
     if (!item || quantity > item.quantity) {
       const updateQuantity = item ? quantity - item?.quantity! : quantity;
       dispatch(
         addBasketItemsAsync({
-          productId: item?.productId!,
+          productId: product?.id!,
           quantity: updateQuantity,
         })
       );

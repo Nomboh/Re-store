@@ -14,6 +14,7 @@ import React from "react";
 import { Link, NavLink } from "react-router-dom";
 import { BasketItems } from "../models/basket";
 import { useAppSelector } from "../store/configureStore";
+import SignInMenu from "./SignInMenu";
 
 interface Props {
   darkMode: boolean;
@@ -38,9 +39,10 @@ const navStyles = {
 };
 function Header({ darkMode, handleThemeChange }: Props) {
   const { basket } = useAppSelector(state => state.basket);
+  const { user } = useAppSelector(state => state.account);
   const getSum = (total: number, item: BasketItems) => total + item.quantity;
 
-  const items = basket!.items.reduce(getSum, 0);
+  const items = basket && basket!.items.reduce(getSum, 0);
   return (
     <AppBar position="static" sx={{ mb: 4 }}>
       <Toolbar
@@ -84,18 +86,22 @@ function Header({ darkMode, handleThemeChange }: Props) {
             </Badge>
           </IconButton>
 
-          <List sx={{ display: "flex" }}>
-            {endLink.map(({ title, path }) => (
-              <ListItem
-                component={NavLink}
-                sx={navStyles}
-                to={path}
-                key={title}
-              >
-                {title.toUpperCase()}
-              </ListItem>
-            ))}
-          </List>
+          {user ? (
+            <SignInMenu />
+          ) : (
+            <List sx={{ display: "flex" }}>
+              {endLink.map(({ title, path }) => (
+                <ListItem
+                  component={NavLink}
+                  sx={navStyles}
+                  to={path}
+                  key={title}
+                >
+                  {title.toUpperCase()}
+                </ListItem>
+              ))}
+            </List>
+          )}
         </Box>
       </Toolbar>
     </AppBar>
