@@ -6,19 +6,24 @@ import {
   TableRow,
   TableCell,
 } from "@mui/material";
-import { BasketItems } from "../../app/models/basket";
 import { useAppSelector } from "../../app/store/configureStore";
 import { formatCurrency } from "../../app/util/util";
+import { BasketItems } from "../../app/models/basket";
 
-export default function BasketSummary() {
+interface Props {
+  subTotal?: number;
+}
+
+export default function BasketSummary({ subTotal }: Props) {
   const { basket } = useAppSelector(state => state.basket);
+  if (subTotal === undefined)
+    subTotal =
+      basket?.items.reduce(
+        (sum: number, item: BasketItems) => sum + item.quantity * item.price,
+        0
+      ) ?? 0;
 
-  const subtotal =
-    basket?.items.reduce(
-      (sum: number, item: BasketItems) => sum + item.quantity * item.price,
-      0
-    ) ?? 0;
-  const deliveryFee = subtotal > 10000 ? 0 : 500;
+  const deliveryFee = subTotal > 10000 ? 0 : 500;
   return (
     <>
       <TableContainer component={Paper} variant={"outlined"}>
@@ -26,7 +31,7 @@ export default function BasketSummary() {
           <TableBody>
             <TableRow>
               <TableCell colSpan={2}>Subtotal</TableCell>
-              <TableCell align="right">{formatCurrency(subtotal)}</TableCell>
+              <TableCell align="right">{formatCurrency(subTotal)}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell colSpan={2}>Delivery fee*</TableCell>
@@ -35,7 +40,7 @@ export default function BasketSummary() {
             <TableRow>
               <TableCell colSpan={2}>Total</TableCell>
               <TableCell align="right">
-                {formatCurrency(subtotal + deliveryFee)}
+                {formatCurrency(subTotal + deliveryFee)}
               </TableCell>
             </TableRow>
             <TableRow>

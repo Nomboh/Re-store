@@ -3,6 +3,7 @@ import React from "react";
 import { logOutUser } from "../../features/account/accountSlice";
 import { clearBasket } from "../../features/basket/basketSlice";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
+import { Link } from "react-router-dom";
 
 type Props = {};
 
@@ -32,7 +33,9 @@ function SignInMenu(prop: Props) {
         }}
       >
         <MenuItem onClick={handleClose}>Profile</MenuItem>
-        <MenuItem onClick={handleClose}>My Orders</MenuItem>
+        <MenuItem component={Link} onClick={handleClose} to="/orders">
+          My Orders
+        </MenuItem>
         <MenuItem
           onClick={() => {
             dispatch(logOutUser());
